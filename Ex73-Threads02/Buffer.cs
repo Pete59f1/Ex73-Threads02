@@ -20,23 +20,31 @@ namespace Ex73_Threads02
         }
         public void Put(Car car)
         {
-            if (IsFull())
+            lock (bufferLock)
             {
-                Monitor.Wait(bufferLock);
+                if (IsFull())
+                {
+                    Monitor.Wait(bufferLock);
+                    //throw new System.ArgumentException("Køen er fuld");
+                }
+                bufferData.Enqueue(car);
+                Monitor.Pulse(bufferLock);
             }
-            bufferData.Enqueue(car);
-            //if (bufferData.Count > capacity) throw new System.ArgumentException("Køen er fuld");
-
         }
         public Car Get()
         {
-            Car car = null;
-            if (IsEmpty())
+            lock (bufferLock)
             {
-                Monitor.Wait(bufferLock);
+                Car car = null;
+                if (IsEmpty())
+                {
+                    Monitor.Wait(bufferLock);
+                    //throw new System.ArgumentException("Køen er tom");
+                }
+                car = bufferData.Dequeue();
+                Monitor.Pulse(bufferLock);
+                return car;
             }
-            car = bufferData.Dequeue();
-            return car;
         }
 
         public bool IsEmpty()
